@@ -1,25 +1,27 @@
 /**
- * fileService.js - SECURE baseline
- * Path-guard prevents traversal. Key-guard prevents prototype pollution.
+ * fileService.js
+ *
+ * WARNING: SEC-004 HIGH - Path Traversal (line 16)
+ * filename from req.query joined to __dirname without path guard.
+ * Attacker: ?filename=../../.env reads secrets.
+ * Fix: resolve path and assert it starts with REPORTS_DIR.
+ *
+ * WARNING: SEC-005 HIGH - Prototype Pollution (line 21)
+ * deepMerge iterates keys without blocking __proto__.
+ * Attacker: {"__proto__":{"isAdmin":true}} poisons Object.prototype.
+ * Fix: skip __proto__, constructor, prototype keys.
  */
 
 const fs   = require('fs');
 const path = require('path');
 
-const REPORTS_DIR = path.resolve(__dirname, '../../reports');
-
 const getReport = (filename) => {
-  const resolved = path.resolve(REPORTS_DIR, filename);
-  if (!resolved.startsWith(REPORTS_DIR + path.sep)) {
-    throw new Error('Access denied');
-  }
-  return fs.readFileSync(resolved, 'utf8');
+  const filePath = path.join(__dirname, '../../reports', filename);
+  return fs.readFileSync(filePath, 'utf8');
 };
 
 function deepMerge(target, source) {
-  const BLOCKED = new Set(['__proto__', 'constructor', 'prototype']);
-  for (const key of Object.keys(source)) {
-    if (BLOCKED.has(key)) continue;
+  for (const key in source) {
     if (typeof source[key] === 'object' && source[key] !== null) {
       if (!target[key]) target[key] = {};
       deepMerge(target[key], source[key]);

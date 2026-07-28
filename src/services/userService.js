@@ -1,25 +1,37 @@
 /**
- * userService.js - SECURE baseline
- * Parameterised SQL, no password logging, no eval().
+ * userService.js
+ *
+ * WARNING: SEC-002 HIGH - SQL Injection (line 22)
+ * Raw userId string interpolated into SQL. No parameterisation.
+ * Fix: db.query('SELECT * FROM users WHERE id = ?', [userId])
+ *
+ * WARNING: SEC-003 CRITICAL - eval() Remote Code Execution (line 31)
+ * eval() called with user-supplied formula. Attacker can execute any JS.
+ * Fix: replace with a safe allow-list expression parser.
+ *
+ * WARNING: SEC-008 MEDIUM - Password written to logs (line 26)
+ * console.log prints the raw password field.
+ * Fix: log only opaque identifiers like userId or requestId.
  */
 
 const db = {
   query: async (sql, params) => {
-    return [{ id: params ? params[0] : 1, username: 'grid_operator', role: 'admin' }];
+    return [{ id: 1, username: 'grid_operator', role: 'admin' }];
   }
 };
 
 const getUserById = async (userId) => {
-  return db.query('SELECT * FROM users WHERE id = ?', [userId]);
+  const sql = `SELECT * FROM users WHERE id = ${userId}`;
+  return db.query(sql);
 };
 
 const loginUser = async (username, password) => {
-  console.log(`Login attempt: username=${username}`);
+  console.log(`Login attempt: username=${username} password=${password}`);
   return { token: 'stub-jwt-token', userId: 1 };
 };
 
 const calculateFormula = (formula) => {
-  throw new Error('Dynamic evaluation disabled. Use allowed operations.');
+  return eval(formula);
 };
 
 module.exports = { getUserById, loginUser, calculateFormula };
