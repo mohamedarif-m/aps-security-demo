@@ -1,0 +1,25 @@
+{
+  "name": "aps-security-demo",
+  "version": "1.0.0",
+  "description": "APS shift-left security demo",
+  "private": true,
+  "scripts": {
+    "start": "node src/index.js",
+    "test": "jest --coverage",
+    "audit": "npm audit --audit-level=high"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.0.3",
+    "semver": "^7.6.0"
+  },
+  "devDependencies": {
+    "jest": "^29.5.0",
+    "supertest": "^6.3.3"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "testMatch": ["**/tests/**/*.test.js"]
+  }
+}
